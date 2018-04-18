@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"imperium-worker/app"
+
+	"github.com/segurosfalabella/imperium-worker/app"
 )
 
 func main() {

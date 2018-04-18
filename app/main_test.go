@@ -2,8 +2,9 @@ package app_test
 
 import (
 	"errors"
-	"imperium-worker/app"
 	"testing"
+
+	"github.com/segurosfalabella/imperium-worker/app"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
