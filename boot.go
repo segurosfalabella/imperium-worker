@@ -1,9 +1,14 @@
 package main
 
 import (
-  "imperium-worker/app"
+	"fmt"
+	"imperium-worker/app"
 )
 
 func main() {
-  app.Start()
+	err := app.Start("127.0.0.1:8000")
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
