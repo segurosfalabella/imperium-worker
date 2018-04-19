@@ -3,13 +3,14 @@ package app
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 
-	"google.golang.org/grpc"
+	"github.com/gorilla/websocket"
 )
 
-// GrpcDial ...
-var GrpcDial = grpc.Dial
+// WsDial variable
+var WsDial = websocket.DefaultDialer.Dial
 
 // Start method
 func Start(address string) error {
@@ -17,17 +18,25 @@ func Start(address string) error {
 		return errors.New("missing server address")
 	}
 
-	if match, err := regexp.MatchString(`\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+`, address); err != nil || !match {
+	if validateAddressFormat(address) {
 		return errors.New("server address invalid")
 	}
 
-	conn, err := GrpcDial(address, grpc.WithInsecure())
-	if err != nil {
-		return errors.New("connection fail")
+	url := url.URL{Scheme: "ws", Host: address, Path: "/echo"}
+	_, _, error := WsDial(url.String(), nil)
+	if error != nil {
+		return error
 	}
 
-	fmt.Println(conn.GetState().String())
+	// fmt.Println(connection.ReadMessage())
 
-	fmt.Println("Hello World!")
 	return nil
+}
+
+func validateAddressFormat(address string) bool {
+	ipFormat := `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}`
+	hostnameFormat := `\w+((.\w+)+)?`
+	expression := fmt.Sprintf(`(%s)|(%s):\d+`, ipFormat, hostnameFormat)
+	match, err := regexp.MatchString(expression, address)
+	return err != nil || !match
 }
