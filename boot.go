@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/segurosfalabella/imperium-worker/connection"
+	"github.com/segurosfalabella/imperium-worker/executer"
 	"github.com/segurosfalabella/imperium-worker/receiver"
 )
 
@@ -28,5 +29,6 @@ func main() {
 		log.Println(err.Error())
 	}
 
-	receiver.Start(conn)
+	job := new(executer.Job)
+	receiver.Start(conn, job)
 }

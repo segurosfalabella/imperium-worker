@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/gorilla/websocket"
 	"github.com/segurosfalabella/imperium-worker/connection"
 
 	"github.com/stretchr/testify/assert"
@@ -21,22 +20,18 @@ func (dialer *MockDialer) Dial(urlStr string) (connection.WsConn, error) {
 }
 
 type MockConn struct {
-	mock.Mock
 }
 
 func (conn *MockConn) Close() error {
-	args := conn.Called()
-	return args.Error(0)
+	return nil
 }
 
 func (conn *MockConn) ReadMessage() (messageType int, p []byte, err error) {
-	args := conn.Called()
-	return args.Int(0), args.Get(1).([]byte), args.Error(2)
+	return nil, nil, nil
 }
 
 func (conn *MockConn) WriteMessage(messageType int, data []byte) error {
-	args := conn.Called(messageType, data)
-	return args.Error(0)
+	return nil
 }
 
 func TestShouldFailWhenNotHaveParamServerAddress(t *testing.T) {
@@ -74,8 +69,6 @@ func TestShouldFailWhenWebsocketDialFail(t *testing.T) {
 func TestShouldNotFailWithValidAddressWithIp(t *testing.T) {
 	var address = "127.0.0.1:7700"
 	mockConn := new(MockConn)
-	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("Hello World"), nil)
-	mockConn.On("WriteMessage", 1, []byte("e16b7b57-3eab-4866-805a-81ccc15a01ac")).Return(nil)
 	mockDialer := new(MockDialer)
 	mockDialer.On("Dial", "ws://127.0.0.1:7700/echo").Return(mockConn, nil)
 
@@ -88,8 +81,6 @@ func TestShouldNotFailWithValidAddressWithIp(t *testing.T) {
 func TestShouldNotFailWithValidAddressWithHostname(t *testing.T) {
 	var address = "localhost.tld:7700"
 	mockConn := new(MockConn)
-	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("Hello World"), nil)
-	mockConn.On("WriteMessage", 1, []byte("e16b7b57-3eab-4866-805a-81ccc15a01ac")).Return(nil)
 	testObj := new(MockDialer)
 	testObj.On("Dial", "ws://localhost.tld:7700/echo").Return(mockConn, nil)
 
