@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"net/url"
 	"regexp"
 
@@ -18,13 +17,12 @@ type WsConn interface {
 	WriteMessage(messageType int, data []byte) error
 }
 
-// Dialer interface
-type Dialer interface {
-	Dial(urlStr string, requestHeader http.Header) (WsConn, *http.Response, error)
+type dialer interface {
+	Dial(urlStr string) (WsConn, error)
 }
 
 // Start method
-func Start(address string, dialer Dialer) error {
+func Start(address string, dialer dialer) error {
 	if address == "" {
 		return errors.New("missing server address")
 	}
@@ -34,7 +32,7 @@ func Start(address string, dialer Dialer) error {
 	}
 
 	url := url.URL{Scheme: "ws", Host: address, Path: "/echo"}
-	conn, _, error := dialer.Dial(url.String(), nil)
+	conn, error := dialer.Dial(url.String())
 	if error != nil {
 		return error
 	}

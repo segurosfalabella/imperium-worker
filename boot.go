@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"net/http"
 
 	"github.com/gorilla/websocket"
 	"github.com/segurosfalabella/imperium-worker/app"
@@ -11,17 +10,18 @@ import (
 
 var addr = flag.String("addr", "127.0.0.1:7700", "imperium server address")
 
-type wsShim struct {
+type websocketDialerShim struct {
 	*websocket.Dialer
 }
 
-func (s wsShim) Dial(urlStr string, requestHeader http.Header) (app.WsConn, *http.Response, error) {
-	return s.Dialer.Dial(urlStr, requestHeader)
+func (s websocketDialerShim) Dial(urlStr string) (app.WsConn, error) {
+	conn, _, err := s.Dialer.Dial(urlStr, nil)
+	return conn, err
 }
 
 func main() {
 	flag.Parse()
-	err := app.Start(*addr, wsShim{})
+	err := app.Start(*addr, new(websocketDialerShim))
 
 	if err != nil {
 		log.Println(err.Error())
