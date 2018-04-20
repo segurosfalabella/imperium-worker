@@ -1,11 +1,11 @@
-package app_test
+package connection_test
 
 import (
 	"errors"
 	"testing"
 
 	"github.com/gorilla/websocket"
-	"github.com/segurosfalabella/imperium-worker/app"
+	"github.com/segurosfalabella/imperium-worker/connection"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -15,9 +15,9 @@ type MockDialer struct {
 	mock.Mock
 }
 
-func (dialer *MockDialer) Dial(urlStr string) (app.WsConn, error) {
+func (dialer *MockDialer) Dial(urlStr string) (connection.WsConn, error) {
 	args := dialer.Called(urlStr)
-	return args.Get(0).(app.WsConn), args.Error(1)
+	return args.Get(0).(connection.WsConn), args.Error(1)
 }
 
 type MockConn struct {
@@ -42,8 +42,9 @@ func (conn *MockConn) WriteMessage(messageType int, data []byte) error {
 func TestShouldFailWhenNotHaveParamServerAddress(t *testing.T) {
 	var address string
 
-	err := app.Start(address, new(MockDialer))
+	conn, err := connection.Create(address, new(MockDialer))
 
+	assert.Nil(t, conn)
 	assert.NotNil(t, err)
 	assert.Equal(t, "missing server address", err.Error())
 }
@@ -51,19 +52,21 @@ func TestShouldFailWhenNotHaveParamServerAddress(t *testing.T) {
 func TestShouldFailWhenServerAddressFormatInvalid(t *testing.T) {
 	var address = "helloworld"
 
-	err := app.Start(address, new(MockDialer))
+	conn, err := connection.Create(address, new(MockDialer))
 
+	assert.Nil(t, conn)
 	assert.NotNil(t, err)
 	assert.Equal(t, "server address invalid", err.Error())
 }
 
 func TestShouldFailWhenWebsocketDialFail(t *testing.T) {
 	var address = "127.0.0.1:7700"
-	testObj := new(MockDialer)
-	testObj.On("Dial", "ws://127.0.0.1:7700/echo").Return(&websocket.Conn{}, errors.New("connection refused"))
+	mockDialer := new(MockDialer)
+	mockDialer.On("Dial", "ws://127.0.0.1:7700/echo").Return(new(MockConn), errors.New("connection refused"))
 
-	err := app.Start(address, testObj)
+	conn, err := connection.Create(address, mockDialer)
 
+	assert.Nil(t, conn)
 	assert.NotNil(t, err)
 	assert.Equal(t, "connection refused", err.Error())
 }
@@ -76,8 +79,9 @@ func TestShouldNotFailWithValidAddressWithIp(t *testing.T) {
 	mockDialer := new(MockDialer)
 	mockDialer.On("Dial", "ws://127.0.0.1:7700/echo").Return(mockConn, nil)
 
-	err := app.Start(address, mockDialer)
+	conn, err := connection.Create(address, mockDialer)
 
+	assert.NotNil(t, conn)
 	assert.Nil(t, err)
 }
 
@@ -89,7 +93,8 @@ func TestShouldNotFailWithValidAddressWithHostname(t *testing.T) {
 	testObj := new(MockDialer)
 	testObj.On("Dial", "ws://localhost.tld:7700/echo").Return(mockConn, nil)
 
-	err := app.Start(address, testObj)
+	conn, err := connection.Create(address, testObj)
 
+	assert.NotNil(t, conn)
 	assert.Nil(t, err)
 }
