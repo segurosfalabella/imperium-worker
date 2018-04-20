@@ -21,7 +21,7 @@ func (s websocketDialerShim) Dial(urlStr string) (connection.WsConn, error) {
 
 func main() {
 	flag.Parse()
-	_, err := connection.Start(*addr, new(websocketDialerShim))
+	_, err := connection.Create(*addr, new(websocketDialerShim))
 
 	if err != nil {
 		log.Println(err.Error())
