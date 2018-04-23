@@ -77,3 +77,5 @@ doc/codelab/wiki/*.bin
 /bin/
 /pkg/
 imperium-worker
+
+internal
