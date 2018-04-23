@@ -18,7 +18,7 @@ func (mockCmd *MockCmd) Run() error {
 	return args.Error(0)
 }
 
-func TestShouldExecuteFailWhenSpawnlingCommandFail(t *testing.T) {
+func TestExecuteShouldFailWhenRunCommandFail(t *testing.T) {
 	job := new(executer.Job)
 	oldCreateCommand := executer.CreateCommand
 	defer func() { executer.CreateCommand = oldCreateCommand }()
@@ -32,4 +32,19 @@ func TestShouldExecuteFailWhenSpawnlingCommandFail(t *testing.T) {
 
 	assert.NotNil(t, err)
 	assert.Equal(t, "527c090d-4102-4671-9033-b3363f78b343", err.Error())
+}
+
+func TestExecuteShouldSuccessWhenRunCommandSuccess(t *testing.T) {
+	job := new(executer.Job)
+	oldCreateCommand := executer.CreateCommand
+	defer func() { executer.CreateCommand = oldCreateCommand }()
+	mock := new(MockCmd)
+	mock.On("Run").Return(nil)
+	executer.CreateCommand = func(name string, arg ...string) executer.Commander {
+		return mock
+	}
+
+	err := job.Execute()
+
+	assert.Nil(t, err)
 }
