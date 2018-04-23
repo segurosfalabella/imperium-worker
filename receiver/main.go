@@ -7,6 +7,7 @@ import (
 	"github.com/segurosfalabella/imperium-worker/connection"
 )
 
+// JobProcessor interface
 type JobProcessor interface {
 	Execute() (bool, error)
 }
