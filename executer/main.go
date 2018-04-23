@@ -20,7 +20,7 @@ type Job struct {
 }
 
 //Execute method
-func (job Job) Execute() error {
+func (job *Job) Execute() error {
 	cmd := CreateCommand("docker", "run", "--rm", "redis")
 	err := cmd.Run()
 	return err

@@ -9,7 +9,7 @@ import (
 
 // JobProcessor interface
 type JobProcessor interface {
-	Execute() (bool, error)
+	Execute() error
 }
 
 // Start function

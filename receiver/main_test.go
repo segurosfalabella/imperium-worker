@@ -32,16 +32,16 @@ type MockJob struct {
 	mock.Mock
 }
 
-func (job *MockJob) Execute() (bool, error) {
+func (job *MockJob) Execute() error {
 	args := job.Called()
-	return args.Bool(0), args.Error(1)
+	return args.Error(0)
 }
 
 func TestShouldExecuteJobWhenMessageParseSuccess(t *testing.T) {
 	mockConn := new(MockConn)
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte(`{"name":"dummy","description":"dummy description","command":"exit"}`), nil)
 	mockJob := new(MockJob)
-	mockJob.On("Execute").Return(true, nil)
+	mockJob.On("Execute").Return(nil)
 
 	receiver.Start(mockConn, mockJob)
 	assert.True(t, mockJob.AssertCalled(t, "Execute"))
