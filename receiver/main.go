@@ -22,7 +22,6 @@ func Start(conn connection.WsConn, jobProcessor JobProcessor) {
 		}
 
 		jobProcessor.Execute()
-
 		// TODO: Salir de una manera elegante.
 		return
 	}

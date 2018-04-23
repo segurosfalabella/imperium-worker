@@ -1,11 +1,13 @@
 package executer
 
+//Job struct
 type Job struct {
 	Name        string
 	Description string
 	Command     string
 }
 
-func (job Job) Execute() (bool, error) {
-	return true, nil
+//Execute method
+func (job Job) Execute() error {
+	return nil
 }

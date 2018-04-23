@@ -20,6 +20,7 @@ func (dialer *MockDialer) Dial(urlStr string) (connection.WsConn, error) {
 }
 
 type MockConn struct {
+	mock.Mock
 }
 
 func (conn *MockConn) Close() error {
@@ -27,7 +28,7 @@ func (conn *MockConn) Close() error {
 }
 
 func (conn *MockConn) ReadMessage() (messageType int, p []byte, err error) {
-	return nil, nil, nil
+	return 0, nil, nil
 }
 
 func (conn *MockConn) WriteMessage(messageType int, data []byte) error {

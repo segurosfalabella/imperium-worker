@@ -28,11 +28,11 @@ func (conn *MockConn) WriteMessage(messageType int, data []byte) error {
 	return args.Error(0)
 }
 
-type MockJobProcessor struct {
+type MockJob struct {
 	mock.Mock
 }
 
-func (job *MockJobProcessor) Execute() (bool, error) {
+func (job *MockJob) Execute() (bool, error) {
 	args := job.Called()
 	return args.Bool(0), args.Error(1)
 }
@@ -40,10 +40,9 @@ func (job *MockJobProcessor) Execute() (bool, error) {
 func TestShouldExecuteJobWhenMessageParseSuccess(t *testing.T) {
 	mockConn := new(MockConn)
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte(`{"name":"dummy","description":"dummy description","command":"exit"}`), nil)
-	mockJobProcessor := new(MockJobProcessor)
-	mockJobProcessor.On("Execute").Return(true, nil)
+	mockJob := new(MockJob)
+	mockJob.On("Execute").Return(true, nil)
 
-	receiver.Start(mockConn, mockJobProcessor)
-
-	assert.True(t, mockJobProcessor.AssertCalled(t, "Execute"))
+	receiver.Start(mockConn, mockJob)
+	assert.True(t, mockJob.AssertCalled(t, "Execute"))
 }

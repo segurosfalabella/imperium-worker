@@ -1,4 +1,3 @@
-<img src="http://ioloop.io/_images/hat.jpg" width="120px" style="float: left">
 <img src="https://cdn-images-1.medium.com/max/607/0*fyyS1OHEaQ2il8Tg.png" width="150px" style="float: left">
 <br>
 
@@ -14,3 +13,5 @@
 $ go build
 $ ./imperium-worker
 ```
+
+# Collaborators
