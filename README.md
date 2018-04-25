@@ -3,7 +3,7 @@
 
 # Introduction
 
-**[imperium-worker](https://github.com/segurosfalabella/imperio-worker)** is an application that connect with a manager to receive orders and execute jobs. **[imperium-worker](https://github.com/segurosfalabella/imperio-worker)** is developed with Golang and works as an agnostic jobs dispatcher.
+**[imperium-worker](https://github.com/segurosfalabella/imperio-worker)** is an application that connect with a manager to receive orders and execute jobs. It is developed with Golang and works as an agnostic jobs dispatcher.
 
 # Requirements
  * No one
@@ -15,3 +15,6 @@ $ ./imperium-worker
 ```
 
 # Collaborators
+
+* Sebastián Díaz <sadiazm@falabella.cl>
+* Miguel Herrera
