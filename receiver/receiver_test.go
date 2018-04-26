@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/segurosfalabella/imperium-worker/receiver"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -37,12 +36,30 @@ func (job *MockJob) Execute() error {
 	return args.Error(0)
 }
 
+func TestShouldFailAuthWhenPasswordToMatch(t *testing.T) {
+	mockConn := new(MockConn)
+	mockConn.On("WriteMessage", websocket.TextMessage, mock.Anything).Return(nil)
+	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("bad-password"), nil)
+	mockJob := new(MockJob)
+
+	receiver.Start(mockConn, mockJob)
+
+	mockConn.AssertNumberOfCalls(t, "WriteMessage", 1)
+	mockConn.AssertNumberOfCalls(t, "ReadMessage", 1)
+	mockJob.AssertNotCalled(t, "Execute")
+}
+
 func TestShouldExecuteJobWhenMessageParseSuccess(t *testing.T) {
 	mockConn := new(MockConn)
+	mockConn.On("WriteMessage", websocket.TextMessage, mock.Anything).Return(nil)
+	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("imperio"), nil).Once()
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte(`{"name":"dummy","description":"dummy description","command":"exit"}`), nil)
 	mockJob := new(MockJob)
 	mockJob.On("Execute").Return(nil)
 
 	receiver.Start(mockConn, mockJob)
-	assert.True(t, mockJob.AssertCalled(t, "Execute"))
+
+	mockConn.AssertNumberOfCalls(t, "WriteMessage", 1)
+	mockConn.AssertNumberOfCalls(t, "ReadMessage", 2)
+	mockJob.AssertCalled(t, "Execute")
 }
