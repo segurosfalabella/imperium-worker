@@ -31,5 +31,5 @@ script:
   - gocyclo -over 4 $(echo $GO_FILES)
   - golint -set_exit_status $(go list ./...)
   - gover
-  - goveralls -coverprofile gover.coverprofile -service=travis-pro
+  - goveralls -coverprofile=gover.coverprofile -service=travis-pro
   - cd godogs && godog
