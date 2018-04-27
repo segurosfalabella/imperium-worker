@@ -21,8 +21,8 @@ before_script:
 
 script:
   - test -z $(gofmt -s -l $GO_FILES)
-  - cd godogs && godog
   - go test -v -race ./...
   - go vet -v ./...
+  - cd godogs && godog
   - cd .. && gocyclo -over 4 $(echo $GO_FILES)
   - golint -set_exit_status $(go list ./...)
