@@ -48,12 +48,12 @@ func echo(w http.ResponseWriter, r *http.Request) {
 
 func aServer() error {
 	startServer(Server)
+	time.Sleep(1 * time.Millisecond)
 	return nil
 }
 
 func workerStarts() error {
 	drivers.RunApp()
-	time.Sleep(100 * time.Millisecond)
 	return nil
 }
 
