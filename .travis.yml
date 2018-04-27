@@ -18,11 +18,14 @@ before_script:
   - go get github.com/golang/lint/golint                        # Linter
   - go get github.com/fzipp/gocyclo
   - go get github.com/DATA-DOG/godog/cmd/godog
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/mattn/goveralls
 
 script:
   - test -z $(gofmt -s -l $GO_FILES)
-  - go test -v -race ./...
+  - go test -v -coverprofile=coverage.out -race ./...
   - go vet -v ./...
   - gocyclo -over 4 $(echo $GO_FILES)
   - golint -set_exit_status $(go list ./...)
+  - goveralls -coverprofile=coverage.out -service=travis-pro
   - cd godogs && godog
