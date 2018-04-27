@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/DATA-DOG/godog"
 	"github.com/gorilla/websocket"
@@ -52,6 +53,7 @@ func aServer() error {
 
 func workerStarts() error {
 	drivers.RunApp()
+	time.Sleep(100 * time.Millisecond)
 	return nil
 }
 
