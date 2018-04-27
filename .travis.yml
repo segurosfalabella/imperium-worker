@@ -13,19 +13,15 @@ notifications:
   email: false
 
 before_script:
-  - GO_FILES=$(find . -iname '*.go' -type f | grep -v /vendor/) # All the .go files, excluding vendor/
+  - GO_FILES=$(find . -iname '*.go' -type f | grep -v /godogs/) # All the .go files, excluding vendor/
   - go get github.com/golang/lint/golint                        # Linter
   - go get github.com/fzipp/gocyclo
   - go get github.com/DATA-DOG/godog/cmd/godog
-  - go get github.com/stretchr/testify/assert
-  - go get github.com/stretchr/testify/mock
-  - go get github.com/gorilla/websocket
-  - go get github.com/sirupsen/logrus
 
 script:
-  - test -z $(gofmt -s -l $GO_FILES)         # Fail if a .go file hasn't been formatted with gofmt
-  - go test -v -race ./...                   # Run all the tests with the race detector enabled
-  - cd godogs && godog                       # Run Functional Tests
-  - go vet ./...                             # go vet is the official Go static analyzer
-  - gocyclo -over 19 $GO_FILES               # forbid code with huge functions
-  - golint -set_exit_status $(go list ./...) # one last linter
+  - test -z $(gofmt -s -l $GO_FILES)
+  - go test -v -race ./...
+  - cd godogs && godog
+  - go vet ./...
+  - gocyclo -over 3 $(echo $GO_FILES)
+  - golint -set_exit_status $(go list ./...)
