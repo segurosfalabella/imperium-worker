@@ -17,6 +17,7 @@ before_script:
   - go get github.com/golang/lint/golint                        # Linter
   - go get github.com/fzipp/gocyclo
   - go get github.com/DATA-DOG/godog/cmd/godog
+  - go get ./...
 
 script:
   - test -z $(gofmt -s -l $GO_FILES)
