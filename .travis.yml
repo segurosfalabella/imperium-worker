@@ -18,7 +18,7 @@ before_script:
   - go get github.com/golang/lint/golint                        # Linter
   - go get github.com/fzipp/gocyclo
   - go get github.com/DATA-DOG/godog/cmd/godog
-
+  - go get github.com/mattn/goveralls
 script:
   - test -z $(gofmt -s -l $GO_FILES)
   - go test -v -race ./...
@@ -26,3 +26,4 @@ script:
   - cd godogs && godog
   - cd .. && gocyclo -over 4 $(echo $GO_FILES)
   - golint -set_exit_status $(go list ./...)
+  - $GOPATH/bin/goveralls -service=travis-ci
