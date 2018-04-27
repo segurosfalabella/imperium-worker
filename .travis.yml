@@ -23,9 +23,9 @@ before_script:
 
 script:
   - test -z $(gofmt -s -l $GO_FILES)
-  - go test -v -covermode=atomic -coverprofile=main.coverprofile -race ./...
+  - go test -v -coverprofile=coverage.out -race ./...
   - go vet -v ./...
   - gocyclo -over 4 $(echo $GO_FILES)
   - golint -set_exit_status $(go list ./...)
-  - goveralls -coverprofile=main.coverprofile -service=travis-pro
+  - goveralls -coverprofile=coverage.out -service=travis-pro
   - cd godogs && godog
