@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -16,9 +18,14 @@ var Server *http.Server
 var upgrader = websocket.Upgrader{}
 var confirmError error
 var respond string
+var serverChannel = make(chan string)
 
 type message struct {
 	value string
+}
+
+type commandMessage struct {
+	Command string
 }
 
 var receiveMessages []message
@@ -44,6 +51,13 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		respond = "imperio"
 	}
 	confirmError = c.WriteMessage(websocket.TextMessage, []byte(respond))
+	go func() {
+		select {
+		case m := <-serverChannel:
+			log.Info("command: ", m)
+			c.WriteMessage(websocket.TextMessage, []byte(m))
+		}
+	}()
 }
 
 func aServer() error {
@@ -71,9 +85,28 @@ func shouldServerSendAccepted(pattern string) error {
 	return nil
 }
 
+func serverSendsCommand(command string) error {
+	log.Info(command)
+	message := &commandMessage{Command: command}
+	bb, _ := json.Marshal(message)
+	serverChannel <- string(bb)
+	return nil
+}
+
+func shouldWorkerRespond(response string) error {
+	log.Info(response)
+	actualResponse := <-serverChannel
+	if response != actualResponse {
+		return fmt.Errorf("%s != %s", actualResponse, response)
+	}
+	return nil
+}
+
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^a server$`, aServer)
 	s.Step(`^worker starts$`, workerStarts)
 	s.Step(`^should server receives "(\w+)" message$`, shouldServerReceive)
 	s.Step(`^should server sends "(\w+)" message$`, shouldServerSendAccepted)
+	s.Step(`^server sends command "(\w+)"$`, serverSendsCommand)
+	s.Step(`^should worker respond "([^"]*)"$`, shouldWorkerRespond)
 }

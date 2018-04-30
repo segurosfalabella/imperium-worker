@@ -23,6 +23,10 @@ type Job struct {
 
 //Execute method
 func (job *Job) Execute() error {
+	return executeDocker(job)
+}
+
+func executeDocker(job *Job) error {
 	cmd := CreateCommand("docker", "run", "--rm", job.Image, job.Arguments)
 	err := cmd.Run()
 	return err
