@@ -9,6 +9,7 @@ import (
 
 	"github.com/DATA-DOG/godog"
 	"github.com/gorilla/websocket"
+	"github.com/segurosfalabella/imperium-worker/connection"
 	"github.com/segurosfalabella/imperium-worker/godogs/drivers"
 	"github.com/sirupsen/logrus"
 )
@@ -37,6 +38,26 @@ func startServer(server *http.Server) {
 	go http.ListenAndServe(addr, nil)
 }
 
+type websocketDialerShim struct {
+	*websocket.Dialer
+}
+
+func (s websocketDialerShim) Dial(urlStr string) (connection.WsConn, error) {
+	conn, _, err := s.Dialer.Dial(urlStr, nil)
+	return conn, err
+}
+
+const mugglePassword = "expelliarmus"
+
+func createMuggleWorker() error {
+	conn, err := connection.Create(addr, new(websocketDialerShim))
+	if err != nil {
+		return errors.New("cannot create muggle worker")
+	}
+	conn.WriteMessage(websocket.TextMessage, []byte(mugglePassword))
+	return nil
+}
+
 func echo(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -46,7 +67,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	defer c.Close()
 	_, m, _ := c.ReadMessage()
 	receiveMessages = append(receiveMessages, message{value: string(m)})
-	respond = "bad-password"
+	respond = "avadakedavra"
 	if string(m) == "alohomora" {
 		respond = "imperio"
 	}
@@ -72,7 +93,7 @@ func workerStarts() error {
 }
 
 func shouldServerReceive(pattern string) error {
-	if receiveMessages[0].value != pattern {
+	if !stringInSlice(pattern, receiveMessages) {
 		return errors.New("should server receive fail match")
 	}
 	return nil
@@ -102,11 +123,41 @@ func shouldWorkerRespond(response string) error {
 	return nil
 }
 
+func thereIsAServer() error {
+	return nil
+}
+
+func muggleWorkerStarts() error {
+	createMuggleWorker()
+	return nil
+}
+
+func shouldNotServerReceivesMessage(pattern string) error {
+	if !stringInSlice(pattern, receiveMessages) {
+		return errors.New("should not server receives alohomora")
+	}
+	return nil
+}
+
+func stringInSlice(a string, list []message) bool {
+	for _, b := range list {
+		if b.value == a {
+			return true
+		}
+	}
+	return false
+}
+
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^a server$`, aServer)
 	s.Step(`^worker starts$`, workerStarts)
 	s.Step(`^should server receives "(\w+)" message$`, shouldServerReceive)
 	s.Step(`^should server sends "(\w+)" message$`, shouldServerSendAccepted)
+
+	s.Step(`^there is a server$`, thereIsAServer)
+	s.Step(`^muggle worker starts$`, muggleWorkerStarts)
+	s.Step(`^should not server receives "(\w+)" message$`, shouldNotServerReceivesMessage)
+
 	s.Step(`^server sends command "(\w+)"$`, serverSendsCommand)
 	s.Step(`^should worker respond "([^"]*)"$`, shouldWorkerRespond)
 }
