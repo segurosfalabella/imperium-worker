@@ -29,5 +29,5 @@ func RunApp() {
 	}
 
 	job := new(executer.Job)
-	receiver.Start(conn, job)
+	go receiver.Start(conn, job)
 }

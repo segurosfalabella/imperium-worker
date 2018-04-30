@@ -8,15 +8,8 @@ Feature: connect to server
     And should server sends "imperio" message
 
   @connect @old
-  Scenario: Not allowed to connect with server
-    Given there is a server
-    When muggle worker starts
-    Then should not server receives "alohomora" message
-    And should server sends "avadakedavra" message
-
-  @connect @new
   Scenario: Respond to health command
     Given a server
-    And worker starts
+    And worker starts and login
     When server sends command "health"
     Then should worker respond "i am alive"

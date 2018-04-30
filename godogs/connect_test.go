@@ -4,160 +4,81 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/DATA-DOG/godog"
-	"github.com/gorilla/websocket"
-	"github.com/segurosfalabella/imperium-worker/connection"
 	"github.com/segurosfalabella/imperium-worker/godogs/drivers"
 	"github.com/sirupsen/logrus"
 )
 
 var log = logrus.New()
-var Server *http.Server
-var upgrader = websocket.Upgrader{}
-var confirmError error
-var respond string
-var serverChannel = make(chan string)
-
-type message struct {
-	value string
-}
+var serverRequestChannel = make(chan string)
+var serverResponseChannel = make(chan string)
 
 type commandMessage struct {
 	Command string
 }
 
-var receiveMessages []message
-
-const addr = "127.0.0.1:7700"
-
-func startServer(server *http.Server) {
-	http.HandleFunc("/echo", echo)
-	go http.ListenAndServe(addr, nil)
-}
-
-type websocketDialerShim struct {
-	*websocket.Dialer
-}
-
-func (s websocketDialerShim) Dial(urlStr string) (connection.WsConn, error) {
-	conn, _, err := s.Dialer.Dial(urlStr, nil)
-	return conn, err
-}
-
-const mugglePassword = "expelliarmus"
-
-func createMuggleWorker() error {
-	conn, err := connection.Create(addr, new(websocketDialerShim))
-	if err != nil {
-		return errors.New("cannot create muggle worker")
-	}
-	conn.WriteMessage(websocket.TextMessage, []byte(mugglePassword))
-	return nil
-}
-
-func echo(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Info("upgrade:", err)
-		return
-	}
-	defer c.Close()
-	_, m, _ := c.ReadMessage()
-	receiveMessages = append(receiveMessages, message{value: string(m)})
-	respond = "avadakedavra"
-	if string(m) == "alohomora" {
-		respond = "imperio"
-	}
-	confirmError = c.WriteMessage(websocket.TextMessage, []byte(respond))
-	go func() {
-		select {
-		case m := <-serverChannel:
-			log.Info("command: ", m)
-			c.WriteMessage(websocket.TextMessage, []byte(m))
-		}
-	}()
-}
-
 func aServer() error {
-	startServer(Server)
-	time.Sleep(1 * time.Millisecond)
+	drivers.StartServer(serverRequestChannel, serverResponseChannel)
 	return nil
 }
 
 func workerStarts() error {
 	drivers.RunApp()
+	time.Sleep(10 * time.Microsecond)
+	return nil
+}
+
+func workerStartsAndLogin() error {
+	drivers.RunApp()
+	time.Sleep(10 * time.Microsecond)
+	<-serverResponseChannel
 	return nil
 }
 
 func shouldServerReceive(pattern string) error {
-	if !stringInSlice(pattern, receiveMessages) {
+	if drivers.NotExistsPattern(pattern) {
 		return errors.New("should server receive fail match")
 	}
 	return nil
 }
 
 func shouldServerSendAccepted(pattern string) error {
-	if respond != pattern || confirmError != nil {
+	actualResponse := <-serverResponseChannel
+	if actualResponse != pattern || drivers.HasError() {
 		return errors.New("should server send imperio command")
 	}
 	return nil
 }
 
 func serverSendsCommand(command string) error {
-	log.Info(command)
 	message := &commandMessage{Command: command}
 	bb, _ := json.Marshal(message)
-	serverChannel <- string(bb)
+	serverRequestChannel <- string(bb)
 	return nil
 }
 
 func shouldWorkerRespond(response string) error {
-	log.Info(response)
-	actualResponse := <-serverChannel
+	actualResponse := <-serverResponseChannel
 	if response != actualResponse {
 		return fmt.Errorf("%s != %s", actualResponse, response)
 	}
 	return nil
 }
 
-func thereIsAServer() error {
-	return nil
-}
-
-func muggleWorkerStarts() error {
-	createMuggleWorker()
-	return nil
-}
-
-func shouldNotServerReceivesMessage(pattern string) error {
-	if !stringInSlice(pattern, receiveMessages) {
-		return errors.New("should not server receives alohomora")
-	}
-	return nil
-}
-
-func stringInSlice(a string, list []message) bool {
-	for _, b := range list {
-		if b.value == a {
-			return true
-		}
-	}
-	return false
+func afterScenario(arg1 interface{}, arg2 error) {
+	drivers.CloseServer()
 }
 
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^a server$`, aServer)
 	s.Step(`^worker starts$`, workerStarts)
+	s.Step(`^worker starts and login$`, workerStartsAndLogin)
 	s.Step(`^should server receives "(\w+)" message$`, shouldServerReceive)
 	s.Step(`^should server sends "(\w+)" message$`, shouldServerSendAccepted)
-
-	s.Step(`^there is a server$`, thereIsAServer)
-	s.Step(`^muggle worker starts$`, muggleWorkerStarts)
-	s.Step(`^should not server receives "(\w+)" message$`, shouldNotServerReceivesMessage)
-
-	s.Step(`^server sends command "(\w+)"$`, serverSendsCommand)
+	s.Step(`^server sends command "([^"]*)"$`, serverSendsCommand)
 	s.Step(`^should worker respond "([^"]*)"$`, shouldWorkerRespond)
+
+	s.AfterScenario(afterScenario)
 }

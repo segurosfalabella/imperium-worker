@@ -48,3 +48,14 @@ func TestExecuteShouldSuccessWhenRunCommandSuccess(t *testing.T) {
 
 	assert.Nil(t, err)
 }
+
+func TestShouldHandleHealthCommand(t *testing.T) {
+	job := &executer.Job{
+		Command: "health",
+	}
+
+	err := job.Execute()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "i am alive", job.GetResponse())
+}

@@ -1,6 +1,7 @@
 package receiver_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/gorilla/websocket"
@@ -36,7 +37,12 @@ func (job *MockJob) Execute() error {
 	return args.Error(0)
 }
 
-func TestShouldFailAuthWhenPasswordToMatch(t *testing.T) {
+func (job *MockJob) GetResponse() string {
+	args := job.Called()
+	return args.String(0)
+}
+
+func TestShouldFailAuthWhenPasswordNotMatch(t *testing.T) {
 	mockConn := new(MockConn)
 	mockConn.On("WriteMessage", websocket.TextMessage, mock.Anything).Return(nil)
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("bad-password"), nil)
@@ -49,17 +55,50 @@ func TestShouldFailAuthWhenPasswordToMatch(t *testing.T) {
 	mockJob.AssertNotCalled(t, "Execute")
 }
 
-func TestShouldExecuteJobWhenMessageParseSuccess(t *testing.T) {
+func TestShouldNotExecuteWhenParseJobFail(t *testing.T) {
+	mockConn := new(MockConn)
+	mockConn.On("WriteMessage", websocket.TextMessage, mock.Anything).Return(nil)
+	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("imperio"), nil).Once()
+	mockConn.On("ReadMessage").Return(-1, []byte(""), nil)
+	mockJob := new(MockJob)
+	mockJob.On("Execute").Return(errors.New("dummy error"))
+
+	receiver.Start(mockConn, mockJob)
+
+	mockConn.AssertNumberOfCalls(t, "WriteMessage", 1)
+	mockConn.AssertNumberOfCalls(t, "ReadMessage", 2)
+	mockJob.AssertNotCalled(t, "Execute")
+}
+
+func TestShouldRespondErrorWhenExecuteFail(t *testing.T) {
+	mockConn := new(MockConn)
+	mockConn.On("WriteMessage", websocket.TextMessage, mock.Anything).Return(nil)
+	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("imperio"), nil).Once()
+	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte(`{"name":"dummy","description":"dummy description","command":"exit"}`), nil)
+	mockJob := new(MockJob)
+	mockJob.On("Execute").Return(errors.New("dummy error"))
+
+	receiver.Start(mockConn, mockJob)
+
+	mockConn.AssertNumberOfCalls(t, "WriteMessage", 2)
+	mockConn.AssertNumberOfCalls(t, "ReadMessage", 2)
+	mockJob.AssertCalled(t, "Execute")
+}
+
+func TestShouldRespondResponseWhenExecuteSucceed(t *testing.T) {
 	mockConn := new(MockConn)
 	mockConn.On("WriteMessage", websocket.TextMessage, mock.Anything).Return(nil)
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("imperio"), nil).Once()
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte(`{"name":"dummy","description":"dummy description","command":"exit"}`), nil)
 	mockJob := new(MockJob)
 	mockJob.On("Execute").Return(nil)
+	mockJob.On("GetResponse").Return("6a41ee8c-f942-42c9-8904-5fba1b5854d7")
 
 	receiver.Start(mockConn, mockJob)
 
-	mockConn.AssertNumberOfCalls(t, "WriteMessage", 1)
+	mockConn.AssertNumberOfCalls(t, "WriteMessage", 2)
 	mockConn.AssertNumberOfCalls(t, "ReadMessage", 2)
+	mockConn.AssertCalled(t, "WriteMessage", websocket.TextMessage, []byte("6a41ee8c-f942-42c9-8904-5fba1b5854d7"))
 	mockJob.AssertCalled(t, "Execute")
+	mockJob.AssertCalled(t, "GetResponse")
 }
