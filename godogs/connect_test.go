@@ -21,6 +21,7 @@ type commandMessage struct {
 
 func aServer() error {
 	drivers.StartServer(serverRequestChannel, serverResponseChannel)
+	time.Sleep(100 * time.Microsecond)
 	return nil
 }
 
