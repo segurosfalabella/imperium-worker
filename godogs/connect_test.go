@@ -27,7 +27,7 @@ func aServer() error {
 
 func workerStarts() error {
 	drivers.RunApp()
-	time.Sleep(10 * time.Microsecond)
+	time.Sleep(100 * time.Microsecond)
 	return nil
 }
 
