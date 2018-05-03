@@ -13,3 +13,17 @@ Feature: connect to server
     And worker starts and login
     When server sends command "health"
     Then should worker respond "i am alive"
+
+  @connect @old
+  Scenario: Execute a job successfully
+    Given a server
+    And worker starts and login
+    When server sends job with image "falabellacr/imperium-job-dummy" and arguments "0"
+    Then worker should respond exit code "0"
+
+  @connect @new
+  Scenario: Execute a job with a failure
+    Given a server
+    And worker starts and login
+    When server sends job with image "falabellacr/imperium-job-dummy" and arguments "5"
+    Then worker should respond exit code "5"

@@ -47,12 +47,10 @@ func echo(w http.ResponseWriter, r *http.Request, requestChannel chan string, re
 	confirmError = c.WriteMessage(websocket.TextMessage, []byte(respond))
 	responseChannel <- respond
 
-	select {
-	case m := <-requestChannel:
-		c.WriteMessage(websocket.TextMessage, []byte(m))
-		_, res, _ := c.ReadMessage()
-		responseChannel <- string(res)
-	}
+	newMessage := <-requestChannel
+	c.WriteMessage(websocket.TextMessage, []byte(newMessage))
+	_, res, _ := c.ReadMessage()
+	responseChannel <- string(res)
 }
 
 func wrapHandler(f http.Handler) http.HandlerFunc {

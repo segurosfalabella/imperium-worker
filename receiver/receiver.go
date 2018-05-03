@@ -1,7 +1,6 @@
 package receiver
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/gorilla/websocket"
@@ -17,7 +16,8 @@ var log = logrus.New()
 // JobProcessor interface
 type JobProcessor interface {
 	Execute() error
-	GetResponse() string
+	FromJSON(text string)
+	ToJSON() string
 }
 
 // Start function
@@ -32,7 +32,6 @@ func Start(conn connection.WsConn, jobProcessor JobProcessor) {
 
 func auth(conn connection.WsConn) error {
 	conn.WriteMessage(websocket.TextMessage, []byte(passwordForSend))
-	log.Info(passwordForSend)
 	_, message, _ := conn.ReadMessage()
 	if string(message) != passwordForValidate {
 		return errors.New("server unknown")
@@ -60,7 +59,7 @@ func loop(conn connection.WsConn, jobProcessor JobProcessor) {
 func parseJob(messageType int, message []byte, jobProcessor JobProcessor) error {
 	switch messageType {
 	case websocket.TextMessage:
-		json.Unmarshal(message, &jobProcessor)
+		jobProcessor.FromJSON(string(message))
 	default:
 		return errors.New("not supported format")
 	}
@@ -74,5 +73,5 @@ func process(conn connection.WsConn, jobProcessor JobProcessor) {
 		return
 	}
 
-	conn.WriteMessage(websocket.TextMessage, []byte(jobProcessor.GetResponse()))
+	conn.WriteMessage(websocket.TextMessage, []byte(jobProcessor.ToJSON()))
 }

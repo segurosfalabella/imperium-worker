@@ -37,7 +37,11 @@ func (job *MockJob) Execute() error {
 	return args.Error(0)
 }
 
-func (job *MockJob) GetResponse() string {
+func (job *MockJob) FromJSON(text string) {
+	job.Called(text)
+}
+
+func (job *MockJob) ToJSON() string {
 	args := job.Called()
 	return args.String(0)
 }
@@ -76,6 +80,7 @@ func TestShouldRespondErrorWhenExecuteFail(t *testing.T) {
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("imperio"), nil).Once()
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte(`{"name":"dummy","description":"dummy description","command":"exit"}`), nil)
 	mockJob := new(MockJob)
+	mockJob.On("FromJSON", mock.Anything).Return()
 	mockJob.On("Execute").Return(errors.New("dummy error"))
 
 	receiver.Start(mockConn, mockJob)
@@ -91,8 +96,9 @@ func TestShouldRespondResponseWhenExecuteSucceed(t *testing.T) {
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte("imperio"), nil).Once()
 	mockConn.On("ReadMessage").Return(websocket.TextMessage, []byte(`{"name":"dummy","description":"dummy description","command":"exit"}`), nil)
 	mockJob := new(MockJob)
+	mockJob.On("FromJSON", mock.Anything).Return()
 	mockJob.On("Execute").Return(nil)
-	mockJob.On("GetResponse").Return("6a41ee8c-f942-42c9-8904-5fba1b5854d7")
+	mockJob.On("ToJSON").Return("6a41ee8c-f942-42c9-8904-5fba1b5854d7")
 
 	receiver.Start(mockConn, mockJob)
 
@@ -100,5 +106,5 @@ func TestShouldRespondResponseWhenExecuteSucceed(t *testing.T) {
 	mockConn.AssertNumberOfCalls(t, "ReadMessage", 2)
 	mockConn.AssertCalled(t, "WriteMessage", websocket.TextMessage, []byte("6a41ee8c-f942-42c9-8904-5fba1b5854d7"))
 	mockJob.AssertCalled(t, "Execute")
-	mockJob.AssertCalled(t, "GetResponse")
+	mockJob.AssertCalled(t, "ToJSON")
 }

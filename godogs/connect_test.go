@@ -16,7 +16,10 @@ var serverRequestChannel = make(chan string)
 var serverResponseChannel = make(chan string)
 
 type commandMessage struct {
-	Command string
+	Command   string
+	Image     string
+	Arguments string
+	ExitCode  int
 }
 
 func aServer() error {
@@ -33,7 +36,7 @@ func workerStarts() error {
 
 func workerStartsAndLogin() error {
 	drivers.RunApp()
-	time.Sleep(10 * time.Microsecond)
+	time.Sleep(100 * time.Microsecond)
 	<-serverResponseChannel
 	return nil
 }
@@ -55,8 +58,8 @@ func shouldServerSendAccepted(pattern string) error {
 
 func serverSendsCommand(command string) error {
 	message := &commandMessage{Command: command}
-	bb, _ := json.Marshal(message)
-	serverRequestChannel <- string(bb)
+	binary, _ := json.Marshal(message)
+	serverRequestChannel <- string(binary)
 	return nil
 }
 
@@ -64,6 +67,26 @@ func shouldWorkerRespond(response string) error {
 	actualResponse := <-serverResponseChannel
 	if response != actualResponse {
 		return fmt.Errorf("%s != %s", actualResponse, response)
+	}
+	return nil
+}
+
+func serverSendsJobWithImageAndArguments(image string, args string) error {
+	message := &commandMessage{
+		Image:     image,
+		Arguments: args,
+	}
+	binary, _ := json.Marshal(message)
+	serverRequestChannel <- string(binary)
+	return nil
+}
+
+func workerShouldRespondExitCode(code int) error {
+	actualResponse := <-serverResponseChannel
+	response := &commandMessage{}
+	json.Unmarshal([]byte(actualResponse), &response)
+	if code != response.ExitCode {
+		return fmt.Errorf("%d != %d", code, response.ExitCode)
 	}
 	return nil
 }
@@ -80,6 +103,8 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^should server sends "(\w+)" message$`, shouldServerSendAccepted)
 	s.Step(`^server sends command "([^"]*)"$`, serverSendsCommand)
 	s.Step(`^should worker respond "([^"]*)"$`, shouldWorkerRespond)
+	s.Step(`^server sends job with image "([^"]*)" and arguments "([^"]*)"$`, serverSendsJobWithImageAndArguments)
+	s.Step(`^worker should respond exit code "([^"]*)"$`, workerShouldRespondExitCode)
 
 	s.AfterScenario(afterScenario)
 }

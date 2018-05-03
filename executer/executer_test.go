@@ -23,6 +23,7 @@ func TestExecuteShouldFailWhenRunCommandFail(t *testing.T) {
 	oldCreateCommand := executer.CreateCommand
 	defer func() { executer.CreateCommand = oldCreateCommand }()
 	mock := new(MockCmd)
+
 	mock.On("Run").Return(errors.New("527c090d-4102-4671-9033-b3363f78b343"))
 	executer.CreateCommand = func(name string, arg ...string) executer.Commander {
 		return mock
@@ -57,5 +58,25 @@ func TestShouldHandleHealthCommand(t *testing.T) {
 	err := job.Execute()
 
 	assert.Nil(t, err)
-	assert.Equal(t, "i am alive", job.GetResponse())
+	assert.Equal(t, "i am alive", job.Response)
+}
+
+func TestShouldReturnExitCodeZeroWhenExecuteJobSuccess(t *testing.T) {
+	job := &executer.Job{
+		Image:     "hogwarts/mirror",
+		Arguments: "0",
+		ExitCode:  -1,
+	}
+	oldCreateCommand := executer.CreateCommand
+	defer func() { executer.CreateCommand = oldCreateCommand }()
+	mock := new(MockCmd)
+	mock.On("Run").Return(nil)
+	executer.CreateCommand = func(name string, arg ...string) executer.Commander {
+		return mock
+	}
+
+	job.Execute()
+
+	exitCode := 0
+	assert.Equal(t, exitCode, job.ExitCode)
 }

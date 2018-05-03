@@ -1,7 +1,6 @@
-<img src="https://cdn-images-1.medium.com/max/607/0*fyyS1OHEaQ2il8Tg.png" width="150px" style="float: left">
-<br>
+![Go gopher](https://cdn-images-1.medium.com/max/607/0*fyyS1OHEaQ2il8Tg.png)
 
-[![Coverage Status](https://coveralls.io/repos/github/segurosfalabella/imperium-worker/badge.svg?branch=master)](https://coveralls.io/github/segurosfalabella/imperium-worker?branch=master)
+[![codecov](https://codecov.io/gh/segurosfalabella/imperium-worker/branch/master/graph/badge.svg)](https://codecov.io/gh/segurosfalabella/imperium-worker)
 
 [![Build Status](https://travis-ci.org/segurosfalabella/imperium-worker.svg?branch=master)](https://travis-ci.org/segurosfalabella/imperium-worker)
 

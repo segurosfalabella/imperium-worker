@@ -1,6 +1,7 @@
 package executer
 
 import (
+	"encoding/json"
 	"os/exec"
 
 	"github.com/sirupsen/logrus"
@@ -20,12 +21,24 @@ var CreateCommand = func(name string, arg ...string) Commander {
 
 // Job struct
 type Job struct {
-	Name        string
-	Description string
-	Command     string
-	Image       string
-	Arguments   string
-	Response    string
+	ID        string
+	Command   string
+	Image     string
+	Arguments string
+	Envs      map[string]string
+	Response  string
+	ExitCode  int
+}
+
+// FromJSON method
+func (job *Job) FromJSON(text string) {
+	json.Unmarshal([]byte(text), &job)
+}
+
+// ToJSON method
+func (job *Job) ToJSON() string {
+	binary, _ := json.Marshal(job)
+	return string(binary)
 }
 
 // Execute method
@@ -37,13 +50,15 @@ func (job *Job) Execute() error {
 	return executeDocker(job)
 }
 
-// GetResponse method
-func (job *Job) GetResponse() string {
-	return job.Response
-}
-
 func executeDocker(job *Job) error {
 	cmd := CreateCommand("docker", "run", "--rm", job.Image, job.Arguments)
 	err := cmd.Run()
+	setExitCode(job, err)
 	return err
+}
+
+func setExitCode(job *Job, err error) {
+	if err == nil {
+		job.ExitCode = 0
+	}
 }
