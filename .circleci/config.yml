@@ -1,0 +1,18 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.9
+
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+
+      - run: test -z $(gofmt -s -l $GO_FILES)
+      - run: go test -v -race ./...
+      - run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - run: go vet -v ./...
+      - run: gocyclo -over 4 $(echo $GO_FILES)
+      - run: golint -set_exit_status $(go list ./...)
+      - run: go build
+      - run: cd godogs && godog
