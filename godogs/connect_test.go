@@ -98,6 +98,10 @@ func afterScenario(arg1 interface{}, arg2 error) {
 	drivers.CloseServer()
 }
 
+func beforeSuite() {
+	logrus.SetLevel(logrus.FatalLevel)
+}
+
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^a server$`, aServer)
 	s.Step(`^worker starts$`, workerStarts)
@@ -109,8 +113,6 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^server sends job with image "([^"]*)" and arguments "([^"]*)"$`, serverSendsJobWithImageAndArguments)
 	s.Step(`^worker should respond exit code "([^"]*)"$`, workerShouldRespondExitCode)
 
-	s.BeforeSuite(func() {
-		logrus.SetLevel(logrus.FatalLevel)
-	})
+	s.BeforeSuite(beforeSuite)
 	s.AfterScenario(afterScenario)
 }

@@ -5,7 +5,6 @@ services:
 
 go:
   - 1.10.1
-  - master
 
 matrix:
   allow_failures:
