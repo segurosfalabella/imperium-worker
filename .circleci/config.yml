@@ -7,6 +7,12 @@ jobs:
     steps:
       - checkout
 
+      - run: go get -t ./...
+      - run: GO_FILES=$(find . -iname '*.go' -type f | grep -v /godogs/ | tr "\n" " ")
+      - run: go get github.com/golang/lint/golint
+      - run: go get github.com/fzipp/gocyclo
+      - run: go get github.com/DATA-DOG/godog/cmd/godog
+
       - run: test -z $(gofmt -s -l $GO_FILES)
       - run: go test -v -race ./...
       - run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...

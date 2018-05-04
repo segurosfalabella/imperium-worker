@@ -33,6 +33,8 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-  - docker build -t falabellacr/imperium-worker:${TRAVIS_COMMIT} .
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker push falabellacr/imperium-worker:${TRAVIS_COMMIT}
+  - docker build -t falabellacr/imperium-worker:t-${TRAVIS_BUILD_NUMBER} .
+  - docker push falabellacr/imperium-worker:t-${TRAVIS_BUILD_NUMBER}
+  - docker build -t falabellacr/imperium-worker:t-${TRAVIS_BUILD_NUMBER}-alpine -f Dockerfile.alpine .
+  - docker push falabellacr/imperium-worker:t-${TRAVIS_BUILD_NUMBER}-alpine
