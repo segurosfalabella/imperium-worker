@@ -1,6 +1,7 @@
 version: 2
 jobs:
   build:
+    working_directory: /go/src/github.com/segurosfalabella/imperium-worker
     docker:
       - image: circleci/golang:1.9
 
@@ -19,5 +20,7 @@ jobs:
       - run: go vet -v ./...
       - run: gocyclo -over 4 $(echo $GO_FILES)
       - run: golint -set_exit_status $(go list ./...)
-      - run: go build
-      - run: cd godogs && godog
+      - run: cd godogs && godog && cd ..
+      - run: ./build.sh
+      # - run: docker build -t falabellacr/imperium-worker:c-${TRAVIS_BUILD_NUMBER} .
+      # - run: docker push falabellacr/imperium-worker:c-${TRAVIS_BUILD_NUMBER}

@@ -1,5 +1,0 @@
-FROM alpine:3.7
-
-ADD /imperium-worker /imperium-worker
-
-ENTRYPOINT ["/imperium-worker"]

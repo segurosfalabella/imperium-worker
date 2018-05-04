@@ -28,13 +28,11 @@ script:
   - go vet -v ./...
   - gocyclo -over 4 $(echo $GO_FILES)
   - golint -set_exit_status $(go list ./...)
-  - go build
   - cd godogs && godog && cd ..
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - ./build.sh
   - docker build -t falabellacr/imperium-worker:t-${TRAVIS_BUILD_NUMBER} .
   - docker push falabellacr/imperium-worker:t-${TRAVIS_BUILD_NUMBER}
-  - docker build -t falabellacr/imperium-worker:t-${TRAVIS_BUILD_NUMBER}-alpine -f Dockerfile.alpine .
-  - docker push falabellacr/imperium-worker:t-${TRAVIS_BUILD_NUMBER}-alpine
