@@ -29,7 +29,7 @@ script:
   - gocyclo -over 4 $(echo $GO_FILES)
   - golint -set_exit_status $(go list ./...)
   - go build
-  - cd godogs && godog
+  - cd godogs && godog && cd ..
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
