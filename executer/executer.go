@@ -3,20 +3,53 @@ package executer
 import (
 	"encoding/json"
 	"os/exec"
-
-	"github.com/sirupsen/logrus"
+	"syscall"
 )
 
 // Commander interface
 type Commander interface {
-	Run() error
+	Run() ExitErrorInterface
 }
 
-var log = logrus.New()
+// ExitErrorInterface interface
+type ExitErrorInterface interface {
+	Error() string
+	Sys() interface{}
+}
+
+// CmdShim struct
+type CmdShim struct {
+	*exec.Cmd
+}
+
+// Run function
+func (c *CmdShim) Run() ExitErrorInterface {
+	err := c.Cmd.Run()
+	if exitError, ok := err.(*exec.ExitError); ok {
+		return &ExitErrorShim{exitError}
+	}
+
+	return nil
+}
+
+// ExitErrorShim struct
+type ExitErrorShim struct {
+	*exec.ExitError
+}
+
+func (e *ExitErrorShim) Error() string {
+	return e.ProcessState.String()
+}
+
+// Sys function
+func (e *ExitErrorShim) Sys() interface{} {
+	return e.ExitError.Sys()
+}
 
 // CreateCommand function
 var CreateCommand = func(name string, arg ...string) Commander {
-	return exec.Command(name, arg...)
+	cmd := exec.Command(name, arg...)
+	return &CmdShim{cmd}
 }
 
 // Job struct
@@ -58,7 +91,8 @@ func executeDocker(job *Job) error {
 }
 
 func setExitCode(job *Job, err error) {
-	if err == nil {
-		job.ExitCode = 0
+	if exitError, ok := err.(ExitErrorInterface); ok {
+		waitStatus := exitError.Sys().(syscall.WaitStatus)
+		job.ExitCode = waitStatus.ExitStatus()
 	}
 }

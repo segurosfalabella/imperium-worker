@@ -19,6 +19,7 @@ type commandMessage struct {
 	Command   string
 	Image     string
 	Arguments string
+	Response  string
 	ExitCode  int
 }
 
@@ -63,10 +64,12 @@ func serverSendsCommand(command string) error {
 	return nil
 }
 
-func shouldWorkerRespond(response string) error {
+func shouldWorkerRespond(expected string) error {
 	actualResponse := <-serverResponseChannel
-	if response != actualResponse {
-		return fmt.Errorf("%s != %s", actualResponse, response)
+	command := &commandMessage{}
+	json.Unmarshal([]byte(actualResponse), &command)
+	if expected != command.Response {
+		return fmt.Errorf("%s != %s", expected, command.Response)
 	}
 	return nil
 }
@@ -83,10 +86,10 @@ func serverSendsJobWithImageAndArguments(image string, args string) error {
 
 func workerShouldRespondExitCode(code int) error {
 	actualResponse := <-serverResponseChannel
-	response := &commandMessage{}
-	json.Unmarshal([]byte(actualResponse), &response)
-	if code != response.ExitCode {
-		return fmt.Errorf("%d != %d", code, response.ExitCode)
+	command := &commandMessage{}
+	json.Unmarshal([]byte(actualResponse), &command)
+	if code != command.ExitCode {
+		return fmt.Errorf("%d != %d", code, command.ExitCode)
 	}
 	return nil
 }
@@ -106,5 +109,8 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^server sends job with image "([^"]*)" and arguments "([^"]*)"$`, serverSendsJobWithImageAndArguments)
 	s.Step(`^worker should respond exit code "([^"]*)"$`, workerShouldRespondExitCode)
 
+	s.BeforeSuite(func() {
+		logrus.SetLevel(logrus.FatalLevel)
+	})
 	s.AfterScenario(afterScenario)
 }

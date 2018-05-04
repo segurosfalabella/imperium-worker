@@ -3,9 +3,10 @@ package connection
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"regexp"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // WsConn interface
@@ -35,7 +36,7 @@ func Create(address string, dialer dialer) (WsConn, error) {
 		return nil, error
 	}
 
-	log.Println("connected to:", address)
+	log.Info("connected to:", address)
 	return conn, nil
 }
 

@@ -21,7 +21,7 @@ Feature: connect to server
     When server sends job with image "falabellacr/imperium-job-dummy" and arguments "0"
     Then worker should respond exit code "0"
 
-  @connect @new
+  @connect @old
   Scenario: Execute a job with a failure
     Given a server
     And worker starts and login

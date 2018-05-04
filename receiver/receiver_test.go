@@ -82,6 +82,7 @@ func TestShouldRespondErrorWhenExecuteFail(t *testing.T) {
 	mockJob := new(MockJob)
 	mockJob.On("FromJSON", mock.Anything).Return()
 	mockJob.On("Execute").Return(errors.New("dummy error"))
+	mockJob.On("ToJSON").Return("6a41ee8c-f942-42c9-8904-5fba1b5854d7")
 
 	receiver.Start(mockConn, mockJob)
 

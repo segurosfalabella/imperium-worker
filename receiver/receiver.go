@@ -5,13 +5,11 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/segurosfalabella/imperium-worker/connection"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 const passwordForSend = "alohomora"
 const passwordForValidate = "imperio"
-
-var log = logrus.New()
 
 // JobProcessor interface
 type JobProcessor interface {
@@ -69,8 +67,7 @@ func parseJob(messageType int, message []byte, jobProcessor JobProcessor) error 
 
 func process(conn connection.WsConn, jobProcessor JobProcessor) {
 	if err := jobProcessor.Execute(); err != nil {
-		conn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
-		return
+		log.Error(jobProcessor.ToJSON())
 	}
 
 	conn.WriteMessage(websocket.TextMessage, []byte(jobProcessor.ToJSON()))
