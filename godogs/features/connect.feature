@@ -14,7 +14,7 @@ Feature: connect to server
     When server sends command "health"
     Then should worker respond "i am alive"
 
-  @connect @old
+  @connect @new
   Scenario: Execute a job successfully
     Given a server
     And worker starts and login

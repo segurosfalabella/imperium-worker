@@ -20,8 +20,8 @@ type Message struct {
 // StartServer a http websocket server
 func StartServer(requestChannel chan string, responseChannel chan string) {
 	router := http.NewServeMux()
-	router.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
-		echo(w, r, requestChannel, responseChannel)
+	router.HandleFunc("/azkaban", func(w http.ResponseWriter, r *http.Request) {
+		azkabanHandler(w, r, requestChannel, responseChannel)
 	})
 
 	server = &http.Server{
@@ -31,7 +31,7 @@ func StartServer(requestChannel chan string, responseChannel chan string) {
 	go server.ListenAndServe()
 }
 
-func echo(w http.ResponseWriter, r *http.Request, requestChannel chan string, responseChannel chan string) {
+func azkabanHandler(w http.ResponseWriter, r *http.Request, requestChannel chan string, responseChannel chan string) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Info("upgrade:", err)

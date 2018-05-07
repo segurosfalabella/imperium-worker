@@ -40,11 +40,6 @@ func auth(conn connection.WsConn) error {
 func loop(conn connection.WsConn, jobProcessor JobProcessor) {
 	for {
 		messageType, message, _ := conn.ReadMessage()
-		// if err != nil {
-		// 	log.Error(err.Error())
-		// 	conn.Close()
-		// 	break
-		// }
 		if err := parseJob(messageType, message, jobProcessor); err == nil {
 			process(conn, jobProcessor)
 		}

@@ -58,7 +58,7 @@ func TestShouldFailWhenServerAddressFormatInvalid(t *testing.T) {
 func TestShouldFailWhenWebsocketDialFail(t *testing.T) {
 	var address = "127.0.0.1:7700"
 	mockDialer := new(MockDialer)
-	mockDialer.On("Dial", "ws://127.0.0.1:7700/echo").Return(new(MockConn), errors.New("connection refused"))
+	mockDialer.On("Dial", "ws://127.0.0.1:7700/azkaban").Return(new(MockConn), errors.New("connection refused"))
 
 	conn, err := connection.Create(address, mockDialer)
 
@@ -71,7 +71,7 @@ func TestShouldNotFailWithValidAddressWithIp(t *testing.T) {
 	var address = "127.0.0.1:7700"
 	mockConn := new(MockConn)
 	mockDialer := new(MockDialer)
-	mockDialer.On("Dial", "ws://127.0.0.1:7700/echo").Return(mockConn, nil)
+	mockDialer.On("Dial", "ws://127.0.0.1:7700/azkaban").Return(mockConn, nil)
 
 	conn, err := connection.Create(address, mockDialer)
 
@@ -83,7 +83,7 @@ func TestShouldNotFailWithValidAddressWithHostname(t *testing.T) {
 	var address = "localhost.tld:7700"
 	mockConn := new(MockConn)
 	testObj := new(MockDialer)
-	testObj.On("Dial", "ws://localhost.tld:7700/echo").Return(mockConn, nil)
+	testObj.On("Dial", "ws://localhost.tld:7700/azkaban").Return(mockConn, nil)
 
 	conn, err := connection.Create(address, testObj)
 

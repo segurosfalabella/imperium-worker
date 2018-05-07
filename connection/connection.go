@@ -30,7 +30,7 @@ func Create(address string, dialer dialer) (WsConn, error) {
 		return nil, errors.New("server address invalid")
 	}
 
-	url := url.URL{Scheme: "ws", Host: address, Path: "/echo"}
+	url := url.URL{Scheme: "ws", Host: address, Path: "/azkaban"}
 	conn, error := dialer.Dial(url.String())
 	if error != nil {
 		return nil, error
