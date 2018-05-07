@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 export CGO_ENABLED=0
 export GOOS=linux
