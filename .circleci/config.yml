@@ -14,11 +14,10 @@ jobs:
       - run: go get github.com/fzipp/gocyclo
       - run: go get github.com/DATA-DOG/godog/cmd/godog
 
-      - run: test -z $(gofmt -s -l $GO_FILES)
       - run: go test -v -race ./...
       - run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
       - run: go vet -v ./...
-      - run: gocyclo -over 4 $(echo $GO_FILES)
+      - run: gocyclo -over 4 $(find . -iname '*.go' -type f | grep -v /godogs/)
       - run: golint -set_exit_status $(go list ./...)
       - run: cd godogs && godog && cd ..
       - run: ./build.sh
