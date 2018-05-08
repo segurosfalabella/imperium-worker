@@ -34,18 +34,21 @@ func auth(conn connection.WsConn) error {
 	if string(message) != passwordForValidate {
 		return errors.New("server unknown")
 	}
+	log.Info("log in succeed!")
 	return nil
 }
 
 func loop(conn connection.WsConn, jobProcessor JobProcessor) {
 	for {
-		messageType, message, _ := conn.ReadMessage()
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Error("error reading messages: ", err)
+			return
+		}
+
 		if err := parseJob(messageType, message, jobProcessor); err == nil {
 			process(conn, jobProcessor)
 		}
-
-		// TODO: Salir de una manera elegante.
-		return
 	}
 }
 
