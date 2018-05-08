@@ -68,5 +68,6 @@ func process(conn connection.WsConn, jobProcessor JobProcessor) {
 		log.Error(jobProcessor.ToJSON())
 	}
 
+	log.Info("process message succeed: ", jobProcessor.ToJSON())
 	conn.WriteMessage(websocket.TextMessage, []byte(jobProcessor.ToJSON()))
 }
